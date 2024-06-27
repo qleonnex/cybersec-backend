@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import fileUpload from 'express-fileupload';
+import cors from "cors";
 
 import PostsRoute from "./routes/posts/Posts.route.js";
 import { mgConnect } from './config/mgConnect.js';
@@ -19,6 +20,7 @@ app.use("/public", express.static("public"));
 app.use(express.json());
 app.use(fileUpload());
 app.use("/posts", PostsRoute);
+app.use(cors());
 
 (async function run() {
 	try {
