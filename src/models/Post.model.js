@@ -9,6 +9,10 @@ export const PostModel = new mongoose.Schema({
 		type: Date,
 		default: Date.now()
 	},
+	updated_at: {
+		type: Date,
+		default: null
+	},
 	views: {
 		type: Number,
 		default: 0

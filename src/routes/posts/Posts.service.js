@@ -32,7 +32,7 @@ class PostsService {
 	async update(id, imageUrl, title, content) {
 		const oldDoc = await this.Model.findById(id);
 		const doc = await this.Model.findByIdAndUpdate(
-			id, { imageUrl, title, content }, { new: true }
+			id, { imageUrl, title, content, updated_at: Date.now() }, { new: true }
 		);
 
 		if (imageUrl) {
