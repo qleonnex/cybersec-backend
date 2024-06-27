@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import fileUpload from 'express-fileupload';
 
-import PostsRoute from "./routes/posts/posts.route.js";
+import PostsRoute from "./routes/posts/Posts.route.js";
 import { mgConnect } from './config/mgConnect.js';
 import { cdConnect } from './config/cloundinaryConnect.js';
 
