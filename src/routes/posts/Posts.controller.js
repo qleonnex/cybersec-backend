@@ -63,6 +63,10 @@ class PostsController {
 
 		try {
 			const post = await PostsService.delete(id);
+
+			if (!post)
+				return res.status(404).json({ error: "Пост не найден!" });
+
 			const imageParts = post.imageUrl.split('/');
 			const imageLastIndex = imageParts[imageParts.length - 1];
 			const imagePrefix = imageLastIndex.split('.')[0];
@@ -104,6 +108,12 @@ class PostsController {
 				title,
 				content
 			);
+
+			if (!post) {
+				cloudinary.api.delete_resources_by_prefix(uploadedImage.display_name);
+				return res.status(404).json({ error: "Пост не найден!" });
+			}
+
 
 			res.status(200).json(post);
 		} catch (err) {
