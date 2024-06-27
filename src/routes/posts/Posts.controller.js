@@ -1,9 +1,5 @@
-import dotenv from "dotenv";
 import PostsService from './Posts.service.js';
-
-dotenv.config();
-const URL = process.env.URL;
-const PORT = process.env.PORT;
+import { v2 as cloudinary } from 'cloudinary';
 
 class PostsController {
 	async getAll(_, res) {
@@ -29,12 +25,16 @@ class PostsController {
 	async create(req, res) {
 		const { title, content } = req.body;
 		const image = req.files.image;
-		const path = `/public/${image.name}`;
 
 		try {
-			image.mv(`.${path}`);
+			const uploadedData = await new Promise((res, rej) => {
+				cloudinary.uploader.upload_stream((error, result) => {
+					if (error) rej(error);
+					if (!error) res(result);
+				}).end(image.data);
+			});
 			const post = await PostsService.create(
-				`http://${URL}:${PORT + path}`,
+				uploadedData.url,
 				title,
 				content
 			);
@@ -59,14 +59,30 @@ class PostsController {
 	async update(req, res) {
 		const { id } = req.params;
 		const { title, content } = req.body;
-		const image = req.files.image;
-		const path = `/public/${image.name}`;
+		const image = req.files?.image;
 
 		try {
-			image.mv(`.${path}`);
+			if (image) {
+				const uploadedData = await new Promise((res, rej) => {
+					cloudinary.uploader.upload_stream((error, result) => {
+						if (error) rej(error);
+						if (!error) res(result);
+					}).end(image.data);
+				});
+
+				const post = await PostsService.update(
+					id,
+					uploadedData.url,
+					title,
+					content
+				);
+
+				return res.status(200).json(post);
+			}
+
 			const post = await PostsService.update(
 				id,
-				`http://${URL}:${PORT + path}`,
+				undefined,
 				title,
 				content
 			);
