@@ -18,9 +18,9 @@ const app = express();
 
 app.use("/public", express.static("public"));
 app.use(express.json());
+app.use(cors());
 app.use(fileUpload());
 app.use("/posts", PostsRoute);
-app.use(cors());
 
 (async function run() {
 	try {
