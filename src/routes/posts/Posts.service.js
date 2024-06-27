@@ -14,7 +14,9 @@ class PostsService {
 		const doc = await this.Model.findByIdAndUpdate(
 			id, { $inc: { views: 1 } }, { new: true }
 		);
+		if (!doc) return false;
 		await doc.save();
+
 		return doc;
 	}
 

@@ -1,3 +1,4 @@
+import { validationResult } from 'express-validator';
 import PostsService from './Posts.service.js';
 import { v2 as cloudinary } from 'cloudinary';
 
@@ -15,16 +16,28 @@ class PostsController {
 		const { id } = req.params;
 
 		try {
-			const posts = await PostsService.getById(id);
-			res.status(200).json(posts);
+			const post = await PostsService.getById(id);
+
+			if (!post)
+				return res.status(404).json({ error: "Пост не найден!" });
+
+			res.status(200).json(post);
 		} catch (err) {
-			res.status(500).json({ message: err.errors });
+			res.status(500).json({ error: err });
 		}
 	}
 
 	async create(req, res) {
 		const { title, content } = req.body;
-		const image = req.files.image;
+		const image = req.files?.image;
+
+		const { errors } = validationResult(req);
+
+		if (!image)
+			return res.status(500).json({ error: "Изображение не найдено!" });
+
+		if (errors.length)
+			return res.status(500).json({ errors });
 
 		try {
 			const uploadedData = await new Promise((res, rej) => {
@@ -65,6 +78,11 @@ class PostsController {
 		const { id } = req.params;
 		const { title, content } = req.body;
 		const image = req.files?.image;
+
+		const { errors } = validationResult(req);
+
+		if (errors.length)
+			return res.status(500).json({ errors });
 
 		try {
 			let uploadedImage = undefined;
