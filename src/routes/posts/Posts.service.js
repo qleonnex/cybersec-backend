@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { PostModel } from '../../models/Post.model.js';
+import { v2 as cloudinary } from 'cloudinary';
 
 class PostsService {
 	Model = mongoose.model("Post", PostModel);
@@ -25,13 +26,23 @@ class PostsService {
 	}
 
 	async delete(id) {
-		await this.Model.findByIdAndDelete(id);
+		return await this.Model.findByIdAndDelete(id);
 	}
 
 	async update(id, imageUrl, title, content) {
-		return await this.Model.findByIdAndUpdate(
+		const oldDoc = await this.Model.findById(id);
+		const doc = await this.Model.findByIdAndUpdate(
 			id, { imageUrl, title, content }, { new: true }
 		);
+
+		if (imageUrl) {
+			const imageParts = oldDoc.imageUrl.split('/');
+			const imageLastIndex = imageParts[imageParts.length - 1];
+			const imagePrefix = imageLastIndex.split('.')[0];
+			await cloudinary.api.delete_resources_by_prefix(imagePrefix);
+		}
+
+		return doc;
 	}
 }
 

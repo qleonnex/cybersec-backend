@@ -49,10 +49,15 @@ class PostsController {
 		const { id } = req.params;
 
 		try {
-			await PostsService.delete(id);
+			const post = await PostsService.delete(id);
+			const imageParts = post.imageUrl.split('/');
+			const imageLastIndex = imageParts[imageParts.length - 1];
+			const imagePrefix = imageLastIndex.split('.')[0];
+			await cloudinary.api.delete_resources_by_prefix(imagePrefix);
+
 			res.status(200).json({ message: "Успешно удален!" });
 		} catch (err) {
-			res.status(500).json({ message: err.errors });
+			res.status(500).json({ message: err });
 		}
 	}
 
@@ -62,34 +67,29 @@ class PostsController {
 		const image = req.files?.image;
 
 		try {
+			let uploadedImage = undefined;
+
 			if (image) {
-				const uploadedData = await new Promise((res, rej) => {
+				uploadedImage = await new Promise((resolve, reject) => {
 					cloudinary.uploader.upload_stream((error, result) => {
-						if (error) rej(error);
-						if (!error) res(result);
+						if (error) {
+							return reject(error);
+						};
+						resolve(result);
 					}).end(image.data);
 				});
-
-				const post = await PostsService.update(
-					id,
-					uploadedData.url,
-					title,
-					content
-				);
-
-				return res.status(200).json(post);
 			}
 
 			const post = await PostsService.update(
 				id,
-				undefined,
+				uploadedImage?.url,
 				title,
 				content
 			);
 
 			res.status(200).json(post);
 		} catch (err) {
-			res.status(500).json({ message: err });
+			res.status(500).json({ error: err });
 		}
 	}
 }
