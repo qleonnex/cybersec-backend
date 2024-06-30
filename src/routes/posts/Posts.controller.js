@@ -30,6 +30,9 @@ class PostsController {
 	async create(req, res) {
 		const { title, content } = req.body;
 		const image = req.files?.image;
+		console.log(image);
+		if (!image)
+			return res.status(500).json({ message: "Нет изображения" });
 
 		const { errors } = validationResult(req);
 
@@ -37,18 +40,15 @@ class PostsController {
 			return res.status(500).json({ errors });
 
 		try {
-			let uploadedData;
-			if (image) {
-				uploadedData = await new Promise((res, rej) => {
-					cloudinary.uploader.upload_stream((error, result) => {
-						if (error) rej(error);
-						if (!error) res(result);
-					}).end(image.data);
-				});
-			}
+			const uploadedData = await new Promise((res, rej) => {
+				cloudinary.uploader.upload_stream((error, result) => {
+					if (error) rej(error);
+					if (!error) res(result);
+				}).end(image.data);
+			});
 
 			const post = await PostsService.create(
-				uploadedData?.url ?? null,
+				uploadedData.url,
 				title,
 				content
 			);
