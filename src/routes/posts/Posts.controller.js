@@ -33,21 +33,22 @@ class PostsController {
 
 		const { errors } = validationResult(req);
 
-		if (!image)
-			return res.status(500).json({ error: "Изображение не найдено!" });
-
 		if (errors.length)
 			return res.status(500).json({ errors });
 
 		try {
-			const uploadedData = await new Promise((res, rej) => {
-				cloudinary.uploader.upload_stream((error, result) => {
-					if (error) rej(error);
-					if (!error) res(result);
-				}).end(image.data);
-			});
+			let uploadedData;
+			if (image) {
+				uploadedData = await new Promise((res, rej) => {
+					cloudinary.uploader.upload_stream((error, result) => {
+						if (error) rej(error);
+						if (!error) res(result);
+					}).end(image.data);
+				});
+			}
+
 			const post = await PostsService.create(
-				uploadedData.url,
+				uploadedData?.url ?? null,
 				title,
 				content
 			);
